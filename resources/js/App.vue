@@ -81,46 +81,80 @@
       },
       lineClicked: function( row, column, position ) {
 
-        var playerChanged = true;
-
         if( this.matrix[row][column][position] === null )
         {
+          var changePlayer = true;
+
           var matrixRow = this.matrix[row];
-          matrixRow[column][position] = this.currentPlayer;
+          matrixRow[column][position] = parseInt( this.currentPlayer );
           if(matrixRow[column].top != null && matrixRow[column].left != null && matrixRow[column].bottom != null && matrixRow[column].right != null)
           {
-            matrixRow[column].player = this.currentPlayer;
-            playerChanged = false;
+            matrixRow[column].player = parseInt( this.currentPlayer );
+            this.players[this.currentPlayer].score++;
+            changePlayer = false;
           }
           this.$set( this.matrix, row, matrixRow );
 
-          if( position == 'top' && row != 0 )
+          switch( position )
           {
-            matrixRow = this.matrix[row - 1];
-            matrixRow[column].bottom = this.currentPlayer;
-            if(matrixRow[column].top != null && matrixRow[column].left != null && matrixRow[column].bottom != null && matrixRow[column].right != null)
-            {
-              matrixRow[column].player = this.currentPlayer;
-              playerChanged = false;
-            }
-            this.$set( this.matrix, (row - 1), matrixRow );
+            case 'top':
+              if( row > 0 ) {
+                matrixRow = this.matrix[row - 1];
+                matrixRow[column].bottom = parseInt( this.currentPlayer );
+                if(matrixRow[column].top != null && matrixRow[column].left != null && matrixRow[column].bottom != null && matrixRow[column].right != null)
+                {
+                  matrixRow[column].player = parseInt( this.currentPlayer );
+                  this.players[this.currentPlayer].score++;
+                  changePlayer = false;
+                }
+                this.$set( this.matrix, (row - 1), matrixRow );
+              }
+              break;
+            case 'left':
+              if( column > 0 ) {
+                matrixRow = this.matrix[row];
+                matrixRow[column - 1].right = parseInt( this.currentPlayer );
+                if(matrixRow[column - 1].top != null && matrixRow[column - 1].left != null && matrixRow[column - 1].bottom != null && matrixRow[column - 1].right != null)
+                {
+                  matrixRow[column - 1].player = parseInt( this.currentPlayer );
+                  this.players[this.currentPlayer].score++;
+                  changePlayer = false;
+                }
+                this.$set( this.matrix, (row), matrixRow );
+              }
+              break;
+            case 'bottom':
+              if( row < ( this.matrix.length - 1 ) ) {
+                matrixRow = this.matrix[row + 1];
+                matrixRow[column].top = parseInt( this.currentPlayer );
+                if(matrixRow[column].top != null && matrixRow[column].left != null && matrixRow[column].bottom != null && matrixRow[column].right != null)
+                {
+                  matrixRow[column].player = parseInt( this.currentPlayer );
+                  this.players[this.currentPlayer].score++;
+                  changePlayer = false;
+                }
+                this.$set( this.matrix, (row - 1), matrixRow );
+
+              }
+              break;
+            case 'right':
+              if( column > ( this.matrix[row].length - 1 ) ) {
+                matrixRow = this.matrix[row];
+                matrixRow[column + 1].right = parseInt( this.currentPlayer );
+                if(matrixRow[column + 1].top != null && matrixRow[column + 1].left != null && matrixRow[column + 1].bottom != null && matrixRow[column + 1].right != null)
+                {
+                  matrixRow[column + 1].player = parseInt( this.currentPlayer );
+                  this.players[this.currentPlayer].score++;
+                  changePlayer = false;
+                }
+                this.$set( this.matrix, (row), matrixRow );
+              }
+              break;
           }
 
-          if( position == 'left' && column != 0 )
+          if( changePlayer )
           {
-            matrixRow = this.matrix[row];
-            matrixRow[column - 1].right = this.currentPlayer;
-            if(matrixRow[column].top != null && matrixRow[column].left != null && matrixRow[column].bottom != null && matrixRow[column].right != null)
-            {
-              matrixRow[column].player = this.currentPlayer;
-              playerChanged = false;
-            }
-            this.$set( this.matrix, (row), matrixRow );
-          }
-
-          if( playerChanged )
-          {
-            if( this.players[ this.currentPlayer + 1 ] != null )
+            if( this.currentPlayer < ( this.players.length - 1 ) )
             {
               this.currentPlayer++;
             }
@@ -143,7 +177,7 @@
         localStorage.matrix = JSON.stringify( matrix );
       },
       currentPlayer( currentPlayer ) {
-        localStorage.currentPlayer = currentPlayer;
+        localStorage.currentPlayer = parseInt(currentPlayer);
       }
     },
     mounted() {
@@ -157,7 +191,7 @@
         this.matrix = JSON.parse( localStorage.matrix );
       }
       if( localStorage.currentPlayer ) {
-        this.currentPlayer = localStorage.currentPlayer;
+        this.currentPlayer = parseInt(localStorage.currentPlayer);
       }
     }
   }

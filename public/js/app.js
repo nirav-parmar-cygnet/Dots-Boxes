@@ -5348,45 +5348,87 @@ __webpack_require__.r(__webpack_exports__);
       this.matrix = matrix;
     },
     lineClicked: function lineClicked(row, column, position) {
-      var playerChanged = true;
-
       if (this.matrix[row][column][position] === null) {
+        var changePlayer = true;
         var matrixRow = this.matrix[row];
-        matrixRow[column][position] = this.currentPlayer;
+        matrixRow[column][position] = parseInt(this.currentPlayer);
 
         if (matrixRow[column].top != null && matrixRow[column].left != null && matrixRow[column].bottom != null && matrixRow[column].right != null) {
-          matrixRow[column].player = this.currentPlayer;
-          playerChanged = false;
+          matrixRow[column].player = parseInt(this.currentPlayer);
+          this.players[this.currentPlayer].score++;
+          changePlayer = false;
         }
 
         this.$set(this.matrix, row, matrixRow);
 
-        if (position == 'top' && row != 0) {
-          matrixRow = this.matrix[row - 1];
-          matrixRow[column].bottom = this.currentPlayer;
+        switch (position) {
+          case 'top':
+            if (row > 0) {
+              matrixRow = this.matrix[row - 1];
+              matrixRow[column].bottom = parseInt(this.currentPlayer);
 
-          if (matrixRow[column].top != null && matrixRow[column].left != null && matrixRow[column].bottom != null && matrixRow[column].right != null) {
-            matrixRow[column].player = this.currentPlayer;
-            playerChanged = false;
-          }
+              if (matrixRow[column].top != null && matrixRow[column].left != null && matrixRow[column].bottom != null && matrixRow[column].right != null) {
+                matrixRow[column].player = parseInt(this.currentPlayer);
+                this.players[this.currentPlayer].score++;
+                changePlayer = false;
+              }
 
-          this.$set(this.matrix, row - 1, matrixRow);
+              this.$set(this.matrix, row - 1, matrixRow);
+            }
+
+            break;
+
+          case 'left':
+            if (column > 0) {
+              matrixRow = this.matrix[row];
+              matrixRow[column - 1].right = parseInt(this.currentPlayer);
+
+              if (matrixRow[column - 1].top != null && matrixRow[column - 1].left != null && matrixRow[column - 1].bottom != null && matrixRow[column - 1].right != null) {
+                matrixRow[column - 1].player = parseInt(this.currentPlayer);
+                this.players[this.currentPlayer].score++;
+                changePlayer = false;
+              }
+
+              this.$set(this.matrix, row, matrixRow);
+            }
+
+            break;
+
+          case 'bottom':
+            if (row < this.matrix.length - 1) {
+              matrixRow = this.matrix[row + 1];
+              matrixRow[column].top = parseInt(this.currentPlayer);
+
+              if (matrixRow[column].top != null && matrixRow[column].left != null && matrixRow[column].bottom != null && matrixRow[column].right != null) {
+                matrixRow[column].player = parseInt(this.currentPlayer);
+                this.players[this.currentPlayer].score++;
+                changePlayer = false;
+              }
+
+              this.$set(this.matrix, row - 1, matrixRow);
+            }
+
+            break;
+
+          case 'right':
+            if (column > this.matrix[row].length - 1) {
+              matrixRow = this.matrix[row];
+              matrixRow[column + 1].right = parseInt(this.currentPlayer);
+
+              if (matrixRow[column + 1].top != null && matrixRow[column + 1].left != null && matrixRow[column + 1].bottom != null && matrixRow[column + 1].right != null) {
+                matrixRow[column + 1].player = parseInt(this.currentPlayer);
+                this.players[this.currentPlayer].score++;
+                changePlayer = false;
+              }
+
+              this.$set(this.matrix, row, matrixRow);
+            }
+
+            break;
         }
 
-        if (position == 'left' && column != 0) {
-          matrixRow = this.matrix[row];
-          matrixRow[column - 1].right = this.currentPlayer;
-
-          if (matrixRow[column].top != null && matrixRow[column].left != null && matrixRow[column].bottom != null && matrixRow[column].right != null) {
-            matrixRow[column].player = this.currentPlayer;
-            playerChanged = false;
-          }
-
-          this.$set(this.matrix, row, matrixRow);
-        }
-
-        if (playerChanged) {
-          if (this.players[this.currentPlayer + 1] != null) {
+        if (changePlayer) {
+          if (this.currentPlayer < this.players.length - 1) {
             this.currentPlayer++;
           } else {
             this.currentPlayer = 0;
@@ -5406,7 +5448,7 @@ __webpack_require__.r(__webpack_exports__);
       localStorage.matrix = JSON.stringify(_matrix);
     },
     currentPlayer: function currentPlayer(_currentPlayer) {
-      localStorage.currentPlayer = _currentPlayer;
+      localStorage.currentPlayer = parseInt(_currentPlayer);
     }
   },
   mounted: function mounted() {
@@ -5423,7 +5465,7 @@ __webpack_require__.r(__webpack_exports__);
     }
 
     if (localStorage.currentPlayer) {
-      this.currentPlayer = localStorage.currentPlayer;
+      this.currentPlayer = parseInt(localStorage.currentPlayer);
     }
   }
 });
@@ -5475,6 +5517,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
+//
+//
+//
+//
+//
+//
 //
 //
 //
@@ -10819,7 +10867,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()(function(i){return i[1]});
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, "table#matrix-table { margin: 10px; width: 100%; border-spacing: 0; }\ntable#matrix-table > tr { position: relative; }\ntable#matrix-table > tr::before, table#matrix-table > tr::after  { content: ''; border: 1px solid #000; height: 5px; width: 5px; position: absolute; background-color: #000; left: -2.5px; border-radius: 50%; z-index: 1; }\ntable#matrix-table > tr::before { top: -2.5px; }\ntable#matrix-table > tr::after { bottom: -2.5px; }\ntable#matrix-table > tr > td { height: 50px; width: 50x; position: relative; }\ntable#matrix-table > tr > td::before, table#matrix-table > tr > td::after  { content: ''; border: 1px solid #000; height: 5px; width: 5px; position: absolute; background-color: #000; right: -3px; border-radius: 50%; z-index: 1; }\ntable#matrix-table > tr > td::before { top: -3.5px }\ntable#matrix-table > tr > td::after { bottom: -2.5px; }\ntable#matrix-table > tr > td > span { position: absolute; }\ntable#matrix-table > tr > td > span.top { top: -1.5px; left: 0; width: 100%; height: 2.5px; }\ntable#matrix-table > tr > td > span.left { top: 0; left: -1.5px; height: 100%; width: 2.5px; }\ntable#matrix-table > tr > td > span.bottom { bottom: -2.5px; left: 0; width: 100%; height: 2.5px; }\ntable#matrix-table > tr > td > span.right { top: 0; right: -2.5px; height: 100%; width: 2.5px; }\n", ""]);
+___CSS_LOADER_EXPORT___.push([module.id, "table#matrix-table { margin: 10px; width: 100%; border-spacing: 0; table-layout: fixed; }\ntable#matrix-table > tr { position: relative; }\ntable#matrix-table > tr::before, table#matrix-table > tr::after  { content: ''; border: 1px solid #000; height: 5px; width: 5px; position: absolute; background-color: #000; left: -2.5px; border-radius: 50%; z-index: 1; }\ntable#matrix-table > tr::before { top: -2.5px; }\ntable#matrix-table > tr::after { bottom: -2.5px; }\ntable#matrix-table > tr > td { height: 50px; width: 50x; position: relative; }\ntable#matrix-table > tr > td::before, table#matrix-table > tr > td::after  { content: ''; border: 1px solid #000; height: 5px; width: 5px; position: absolute; background-color: #000; right: -3px; border-radius: 50%; z-index: 1; }\ntable#matrix-table > tr > td::before { top: -3.5px }\ntable#matrix-table > tr > td::after { bottom: -2.5px; }\ntable#matrix-table > tr > td > span:not(.player) { position: absolute; cursor: pointer; }\ntable#matrix-table > tr > td > span.top { top: -1.5px; left: 0; width: 100%; height: 2.5px; }\ntable#matrix-table > tr > td > span.left { top: 0; left: -1.5px; height: 100%; width: 2.5px; }\ntable#matrix-table > tr > td > span.bottom { bottom: -2.5px; left: 0; width: 100%; height: 2.5px; }\ntable#matrix-table > tr > td > span.right { top: 0; right: -2.5px; height: 100%; width: 2.5px; }\ntable#matrix-table > tr > td > span.player { font-weight: bold; }\n", ""]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 
@@ -29191,114 +29239,111 @@ var render = function () {
               "tr",
               { key: "row-" + rowIndex },
               _vm._l(row, function (column, columnIndex) {
-                return _c("td", { key: "td-" + rowIndex + "-" + columnIndex }, [
-                  _c("span", {
+                return _c(
+                  "td",
+                  {
+                    key: "td-" + rowIndex + "-" + columnIndex,
                     class: {
-                      top: true,
-                      "bg-light": column.top === null,
-                      "btn-primary": column.top === 0,
-                      "btn-success": column.top === 1,
-                      "btn-danger": column.top === 2,
-                      "btn-info": column.top === 3,
+                      "text-center": true,
+                      "text-primary": column.player === 0,
+                      "text-success": column.player === 1,
+                      "text-danger": column.player === 2,
+                      "text-info": column.player === 3,
                     },
-                    attrs: { type: "button" },
-                    on: {
-                      click: function ($event) {
-                        return _vm.$emit(
-                          "line-clicked",
-                          rowIndex,
-                          columnIndex,
-                          "top"
-                        )
+                    attrs: { width: 100 / _vm.matrix.length + "%" },
+                  },
+                  [
+                    _c("span", {
+                      class: {
+                        top: true,
+                        "bg-light": column.top === null,
+                        "btn-primary": column.top === 0,
+                        "btn-success": column.top === 1,
+                        "btn-danger": column.top === 2,
+                        "btn-info": column.top === 3,
                       },
-                    },
-                  }),
-                  _vm._v(" "),
-                  _c("span", {
-                    class: {
-                      left: true,
-                      "bg-light": column.left === null,
-                      "btn-primary": column.left === 0,
-                      "btn-success": column.left === 1,
-                      "btn-danger": column.left === 2,
-                      "btn-info": column.left === 3,
-                    },
-                    attrs: { type: "button" },
-                    on: {
-                      click: function ($event) {
-                        return _vm.$emit(
-                          "line-clicked",
-                          rowIndex,
-                          columnIndex,
-                          "left"
-                        )
+                      on: {
+                        click: function ($event) {
+                          return _vm.$emit(
+                            "line-clicked",
+                            rowIndex,
+                            columnIndex,
+                            "top"
+                          )
+                        },
                       },
-                    },
-                  }),
-                  _vm._v(" "),
-                  _c("span", {
-                    directives: [
-                      {
-                        name: "show",
-                        rawName: "v-show",
-                        value: rowIndex + 1 == _vm.matrix.length,
-                        expression: "( rowIndex + 1 ) == matrix.length",
+                    }),
+                    _vm._v(" "),
+                    _c("span", {
+                      class: {
+                        left: true,
+                        "bg-light": column.left === null,
+                        "btn-primary": column.left === 0,
+                        "btn-success": column.left === 1,
+                        "btn-danger": column.left === 2,
+                        "btn-info": column.left === 3,
                       },
-                    ],
-                    class: {
-                      bottom: true,
-                      "bg-light": column.bottom === null,
-                      "btn-primary": column.bottom === 0,
-                      "btn-success": column.bottom === 1,
-                      "btn-danger": column.bottom === 2,
-                      "btn-info": column.bottom === 3,
-                    },
-                    attrs: { type: "button" },
-                    on: {
-                      click: function ($event) {
-                        return _vm.$emit(
-                          "line-clicked",
-                          rowIndex,
-                          columnIndex,
-                          "bottom"
-                        )
+                      on: {
+                        click: function ($event) {
+                          return _vm.$emit(
+                            "line-clicked",
+                            rowIndex,
+                            columnIndex,
+                            "left"
+                          )
+                        },
                       },
-                    },
-                  }),
-                  _vm._v(" "),
-                  _c("span", {
-                    directives: [
-                      {
-                        name: "show",
-                        rawName: "v-show",
-                        value: columnIndex + 1 == row.length,
-                        expression: "( columnIndex + 1 ) == row.length",
+                    }),
+                    _vm._v(" "),
+                    _c("span", {
+                      class: {
+                        bottom: true,
+                        "bg-light": column.bottom === null,
+                        "btn-primary": column.bottom === 0,
+                        "btn-success": column.bottom === 1,
+                        "btn-danger": column.bottom === 2,
+                        "btn-info": column.bottom === 3,
                       },
-                    ],
-                    class: {
-                      right: true,
-                      "bg-light": column.right === null,
-                      "btn-primary": column.right === 0,
-                      "btn-success": column.right === 1,
-                      "btn-danger": column.right === 2,
-                      "btn-info": column.right === 3,
-                    },
-                    attrs: { type: "button" },
-                    on: {
-                      click: function ($event) {
-                        return _vm.$emit(
-                          "line-clicked",
-                          rowIndex,
-                          columnIndex,
-                          "right"
-                        )
+                      on: {
+                        click: function ($event) {
+                          return _vm.$emit(
+                            "line-clicked",
+                            rowIndex,
+                            columnIndex,
+                            "bottom"
+                          )
+                        },
                       },
-                    },
-                  }),
-                  _vm._v(
-                    "\n              " + _vm._s(column.player) + "\n          "
-                  ),
-                ])
+                    }),
+                    _vm._v(" "),
+                    _c("span", {
+                      class: {
+                        right: true,
+                        "bg-light": column.right === null,
+                        "btn-primary": column.right === 0,
+                        "btn-success": column.right === 1,
+                        "btn-danger": column.right === 2,
+                        "btn-info": column.right === 3,
+                      },
+                      on: {
+                        click: function ($event) {
+                          return _vm.$emit(
+                            "line-clicked",
+                            rowIndex,
+                            columnIndex,
+                            "right"
+                          )
+                        },
+                      },
+                    }),
+                    _vm._v(" "),
+                    column.player !== null
+                      ? _c("span", { staticClass: "player" }, [
+                          _vm._v("P" + _vm._s(column.player)),
+                        ])
+                      : _vm._e(),
+                  ]
+                )
               }),
               0
             )
@@ -29319,7 +29364,7 @@ var render = function () {
                 class: {
                   "input-group": true,
                   border: true,
-                  "border-5": _vm.currentPlayer == playerId + 1,
+                  "border-5": _vm.currentPlayer == playerId,
                 },
               },
               [
