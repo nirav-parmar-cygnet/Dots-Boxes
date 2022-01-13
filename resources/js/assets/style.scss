@@ -9,7 +9,11 @@ table#matrix-table > tr > td::before { top: -3.5px }
 table#matrix-table > tr > td::after { bottom: -2.5px; }
 table#matrix-table > tr > td > span:not(.player) { position: absolute; cursor: pointer; }
 table#matrix-table > tr > td > span.top { top: -1.5px; left: 0; width: 100%; height: 2.5px; }
+table#matrix-table > tr:first-child > td > span.top { height: 5px; top: -3px; }
 table#matrix-table > tr > td > span.left { top: 0; left: -1.5px; height: 100%; width: 2.5px; }
+table#matrix-table > tr > td:first-child > span.left { width: 5px; left: -3px; }
 table#matrix-table > tr > td > span.bottom { bottom: -2.5px; left: 0; width: 100%; height: 2.5px; }
+table#matrix-table > tr:last-child > td > span.bottom { height: 5px; bottom: -3px; }
 table#matrix-table > tr > td > span.right { top: 0; right: -2.5px; height: 100%; width: 2.5px; }
+table#matrix-table > tr > td:last-child > span.right { width: 5px; right: -3px; }
 table#matrix-table > tr > td > span.player { font-weight: bold; }

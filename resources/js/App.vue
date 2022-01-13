@@ -1,74 +1,112 @@
 <template>
   <div class="col-12 d-flex">
-    <template v-if="!players.length">
-      <players-count :maximum-players="maximumPlayers" v-on:save="initPlayers" />
+    <template v-if="!gameType">
+      <choose-game-type v-on:save-game-type="saveGameType" />
     </template>
-    <template v-else-if="!playersNamingDone">
-      <players-name :players="players" v-on:save="savePlayersName" />
+    <template v-else-if="!gamePlayers.players.length">
+      <choose-players-count v-on:save-players-count="savePlayersCount" />
     </template>
-    <template v-else-if="!matrix.length">
-      <choose-matrix :matrix-options="matrixOptions" v-on:save="saveMatrix" />
+    <template v-else-if="!gamePlayers.namingDone">
+      <choose-players-name :game-players="gamePlayers" v-on:save-players-name="savePlayersName" />
+    </template>
+    <template v-else-if="!gameMatrix.length">
+      <choose-game-matrix :game-matrix-options="gameMatrixOptions" v-on:save-game-matrix="saveGameMatrix" />
     </template>
     <template v-else>
-      <game-dashboard :matrix="matrix" :players="players" :currentPlayer="currentPlayer" v-on:line-clicked="lineClicked" />
+      <game-dashboard
+        :game-matrix="gameMatrix"
+        :game-players="gamePlayers"
+        :current-player="currentPlayer"
+        v-on:player-clicked-on-line="playerClickedOnLine"
+        v-on:restart-game="restartGame"
+        v-on:end-game="endGame"
+      />
     </template>
   </div>
 </template>
 <script>
-  import PlayersCount from './components/PlayersCount';
-  import PlayersName from './components/PlayersName';
-  import ChooseMatrix from './components/ChooseMatrix';
-  import gameDashboard from './components/GameDashboard';
+
+  import ChooseGameType from './components/ChooseGameType';
+  import ChoosePlayersCount from './components/ChoosePlayersCount';
+  import ChoosePlayersName from './components/ChoosePlayersName';
+  import ChooseGameMatrix from './components/ChooseGameMatrix';
+  import GameDashboard from './components/GameDashboard';
+
   export default {
     components: {
-      'players-count': PlayersCount,
-      'players-name': PlayersName,
-      'choose-matrix': ChooseMatrix,
-      'game-dashboard': gameDashboard,
+      'choose-game-type': ChooseGameType,
+      'choose-players-count': ChoosePlayersCount,
+      'choose-players-name': ChoosePlayersName,
+      'choose-game-matrix': ChooseGameMatrix,
+      'game-dashboard': GameDashboard,
     },
     data: function() {
       return {
-        maximumPlayers: 4,
-        players: [],
-        playersNamingDone: false,
-        currentPlayer: 1,
-        matrixOptions: [
-          {
-            rows: 12,
-            columns: 18,
-          },
-          {
-            rows: 18,
-            columns: 27,
-          },
-          {
-            rows: 24,
-            columns: 36,
-          }
+        gameType: '',
+        gamePlayers: {
+          namingDone: false,
+          players: [],
+        },
+        gameMatrixOptions: [
+          { rows: 9, columns: 9 },
+          { rows: 12, columns: 12 },
+          { rows: 15, columns: 15 },
+          { rows: 18, columns: 18 }
         ],
-        matrix: [],
+        gameMatrix: [],
+        currentPlayer: 0,
+        isGameEnded: false,
       }
     },
     methods: {
-      initPlayers: function( playersCount ) {
+      saveGameType: function( gameType ) {
+        this.gameType = gameType;
+
+        if( gameType === 'computer' )
+        {
+          this.gamePlayers = {
+            namingDone: true,
+            players: [{
+              name: 'Computer',
+              score: 0,
+              isComputer: true,
+            }, {
+              name: 'You',
+              score: 0,
+              isComputer: false,
+            }],
+          };
+        }
+        else {
+          this.gamePlayers = {
+            namingDone: false,
+            players: [],
+          };
+        }
+      },
+      savePlayersCount: function( playersCount ) {
         var players = [];
         for( var i = 0; i < playersCount; i++ ) {
           players.push({
             name: 'Player ' + ( i + 1 ),
             score: 0,
+            isComputer: false,
           });
         }
-        this.players = players;
+        this.gamePlayers = {
+          namingDone: false,
+          players: players,
+        };
       },
       savePlayersName: function( ) {
-        this.playersNamingDone = true;
+        this.$set( this.gamePlayers, 'namingDone', true );
       },
-      saveMatrix: function( matrixOption ) {
-        var matrix = []; 
-        for( var i = 0; i < matrixOption.rows; i++ ) {
-          matrix[i] = [];
-          for( var j = 0; j < matrixOption.columns; j++ ) {
-            matrix[i][j] = {
+      saveGameMatrix: function( gameMatrixOption ) {
+        var gameMatrix = []; 
+        for( var i = 0; i < gameMatrixOption.rows; i++ ) {
+          gameMatrix[i] = [];
+          for( var j = 0; j < gameMatrixOption.columns; j++ ) {
+            gameMatrix[i][j] = {
               top: null,
               left: null,
               bottom: null,
@@ -77,84 +115,89 @@
             };
           }
         }
-        this.matrix = matrix;
+        this.gameMatrix = gameMatrix;
+        this.currentPlayer = 0;
       },
-      lineClicked: function( row, column, position ) {
-
-        if( this.matrix[row][column][position] === null )
+      playerClickedOnLine: function( row, column, position ) {
+        if( this.gameMatrix[row][column][position] === null )
         {
           var changePlayer = true;
+          var players  = this.gamePlayers.players;
 
-          var matrixRow = this.matrix[row];
+          var matrixRow = this.gameMatrix[row];
           matrixRow[column][position] = parseInt( this.currentPlayer );
           if(matrixRow[column].top != null && matrixRow[column].left != null && matrixRow[column].bottom != null && matrixRow[column].right != null)
           {
             matrixRow[column].player = parseInt( this.currentPlayer );
-            this.players[this.currentPlayer].score++;
+            players[this.currentPlayer].score++;
+            this.$set( this.gamePlayers, 'players', players );
             changePlayer = false;
           }
-          this.$set( this.matrix, row, matrixRow );
+          this.$set( this.gameMatrix, row, matrixRow );
 
           switch( position )
           {
             case 'top':
               if( row > 0 ) {
-                matrixRow = this.matrix[row - 1];
+                matrixRow = this.gameMatrix[row - 1];
                 matrixRow[column].bottom = parseInt( this.currentPlayer );
                 if(matrixRow[column].top != null && matrixRow[column].left != null && matrixRow[column].bottom != null && matrixRow[column].right != null)
                 {
                   matrixRow[column].player = parseInt( this.currentPlayer );
-                  this.players[this.currentPlayer].score++;
+                  players[this.currentPlayer].score++;
+                  this.$set( this.gamePlayers, 'players', players );
                   changePlayer = false;
                 }
-                this.$set( this.matrix, (row - 1), matrixRow );
+                this.$set( this.gameMatrix, (row - 1), matrixRow );
               }
               break;
             case 'left':
               if( column > 0 ) {
-                matrixRow = this.matrix[row];
+                matrixRow = this.gameMatrix[row];
                 matrixRow[column - 1].right = parseInt( this.currentPlayer );
                 if(matrixRow[column - 1].top != null && matrixRow[column - 1].left != null && matrixRow[column - 1].bottom != null && matrixRow[column - 1].right != null)
                 {
                   matrixRow[column - 1].player = parseInt( this.currentPlayer );
-                  this.players[this.currentPlayer].score++;
+                  players[this.currentPlayer].score++;
+                  this.$set( this.gamePlayers, 'players', players );
                   changePlayer = false;
                 }
-                this.$set( this.matrix, (row), matrixRow );
+                this.$set( this.gameMatrix, (row), matrixRow );
               }
               break;
             case 'bottom':
-              if( row < ( this.matrix.length - 1 ) ) {
-                matrixRow = this.matrix[row + 1];
+              if( row < ( this.gameMatrix.length - 1 ) ) {
+                matrixRow = this.gameMatrix[row + 1];
                 matrixRow[column].top = parseInt( this.currentPlayer );
                 if(matrixRow[column].top != null && matrixRow[column].left != null && matrixRow[column].bottom != null && matrixRow[column].right != null)
                 {
                   matrixRow[column].player = parseInt( this.currentPlayer );
-                  this.players[this.currentPlayer].score++;
+                  players[this.currentPlayer].score++;
+                  this.$set( this.gamePlayers, 'players', players );
                   changePlayer = false;
                 }
-                this.$set( this.matrix, (row - 1), matrixRow );
-
+                this.$set( this.gameMatrix, (row - 1), matrixRow );
               }
               break;
             case 'right':
-              if( column > ( this.matrix[row].length - 1 ) ) {
-                matrixRow = this.matrix[row];
+              if( column > ( this.gameMatrix[row].length - 1 ) ) {
+                matrixRow = this.gameMatrix[row];
                 matrixRow[column + 1].right = parseInt( this.currentPlayer );
                 if(matrixRow[column + 1].top != null && matrixRow[column + 1].left != null && matrixRow[column + 1].bottom != null && matrixRow[column + 1].right != null)
                 {
                   matrixRow[column + 1].player = parseInt( this.currentPlayer );
-                  this.players[this.currentPlayer].score++;
+                  players[this.currentPlayer].score++;
+                  this.$set( this.gamePlayers, 'players', players );
                   changePlayer = false;
                 }
-                this.$set( this.matrix, (row), matrixRow );
+                this.$set( this.gameMatrix, (row), matrixRow );
               }
               break;
           }
 
           if( changePlayer )
           {
-            if( this.currentPlayer < ( this.players.length - 1 ) )
+            if( this.currentPlayer < ( this.gamePlayers.players.length - 1 ) )
             {
               this.currentPlayer++;
             }
@@ -165,33 +208,57 @@
           }
         }
       },
+      restartGame: function( ) {
+        this.saveGameMatrix({
+          rows: this.gameMatrix.length,
+          columns: this.gameMatrix[0].length,
+        });
+        var players = this.gamePlayers.players.map( player => {
+          player.score = 0;
+          return player;
+        });
+        this.$set( this.gamePlayers, 'players', players );
+        this.currentPlayer = 0;
+      },
+      endGame: function() {
+        
+      },
     },
     watch: {
-      players( players ) {
-        localStorage.players = JSON.stringify( players );
+      gameType( gameType ) {
+        localStorage.gameType = gameType;
       },
-      playersNamingDone( playersNamingDone ) {
-        localStorage.playersNamingDone = playersNamingDone;
+      gamePlayers : {
+        handler( gamePlayers ) {
+          localStorage.gamePlayers = JSON.stringify( gamePlayers );
+        },
+        deep: true,
       },
-      matrix( matrix ) {
-        localStorage.matrix = JSON.stringify( matrix );
+      gameMatrix: {
+        handler( gameMatrix ) {
+          localStorage.gameMatrix = JSON.stringify( gameMatrix );
+        },
+        deep: true,
       },
       currentPlayer( currentPlayer ) {
-        localStorage.currentPlayer = parseInt(currentPlayer);
+        localStorage.currentPlayer = parseInt( currentPlayer );
       }
     },
     mounted() {
-      if( localStorage.players ) {
-        this.players = JSON.parse( localStorage.players );
-      }
-      if( localStorage.playersNamingDone ) {
-        this.playersNamingDone = JSON.parse( localStorage.playersNamingDone );
-      }
-      if( localStorage.matrix ) {
-        this.matrix = JSON.parse( localStorage.matrix );
-      }
-      if( localStorage.currentPlayer ) {
-        this.currentPlayer = parseInt(localStorage.currentPlayer);
+      if( localStorage.gameType ) {
+        this.gameType = localStorage.gameType;
+
+        if( localStorage.gamePlayers ) {
+          this.gamePlayers = JSON.parse( localStorage.gamePlayers );
+        }
+
+        if( localStorage.gameMatrix ) {
+          this.gameMatrix = JSON.parse( localStorage.gameMatrix );
+
+          if( localStorage.currentPlayer ) {
+            this.currentPlayer = parseInt(localStorage.currentPlayer);
+          }
+        }
       }
     }
   }
